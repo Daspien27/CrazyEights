@@ -21,61 +21,172 @@ Player::~Player ()
 void Player::prompt_action (PlayingCards::Rank rank, PlayingCards::Suit suit)
 {
 	using PlayingCards::Card;
-	std::vector<std::vector<Card>> combinations;
-	std::multimap<PlayingCards::Rank, Card> possibleMoves;
+	std::vector<std::vector<Card>> Combinations;
+	std::multimap<PlayingCards::Rank, Card> MultiMapMoves;
 
-	std::vector<Card> TempHand (Hand);
-	
-	std::transform (TempHand.begin (), TempHand.end (), std::inserter (possibleMoves, possibleMoves.begin ()),
-		[](auto const& card) { return make_pair (card.first, card); });
-		
-	for (auto it = possibleMoves.begin (), end = possibleMoves.end (); it != end; it = possibleMoves.upper_bound (it->first))
+	std::vector<Card> PossibleMoves;
+
+	std::remove_copy_if (Hand.begin (), Hand.end(), std::back_inserter(PossibleMoves),
+		[&rank, &suit](auto const& card) { return !(card.second == suit || card.first == rank || card.first == PlayingCards::Rank::EIGHT); });
+
+	//Remove all 8's
+
+	std::vector<Card> PossibleEights;
+
+	std::remove_copy_if (PossibleMoves.begin (), PossibleMoves.end (), std::back_inserter (PossibleEights),
+		[](auto const& card) { return card.first != PlayingCards::Rank::EIGHT; });
+
+	std::transform (PossibleEights.begin (), PossibleEights.end (), std::inserter (MultiMapMoves, MultiMapMoves.begin ()),
+		[](auto const& card) { return std::make_pair (PlayingCards::Rank::EIGHT, card); });
+
+	if (!PossibleEights.empty ())
 	{
-		auto range = possibleMoves.equal_range (it->first);
-
-		auto n = std::distance (range.first, range.second);
-
-		auto findcard = std::find_if (range.first, range.second,
-			[](auto const& kv) { auto const& c = kv.second; !(rank == c.first || suit == c.second || c.first == PlayingCards::Rank::EIGHT); });
+		auto n = PossibleEights.size ();
 
 		for (auto r = n; r > 0; --r)
 		{
 			std::vector<bool> perm (n);
 			std::fill (perm.end () - r, perm.end (), true);
-						
-			do {
-				std::vector<Card> comb;
-				comb.reserve (r);
 
-				auto permIt = range.first;
-		/*		
-				std::transform (perm.begin (), perm.end (), std::back_inserter (comb),
-					[&permIt, &possibleMoves] (auto const& perm) mutable {return (*(permIt++)).second; },
-					[&permIt](auto const& perm) {if (!perm) permIt++; return perm; });
-					*/
-				combinations.push_back (comb);
+			do {
+				std::vector<std::pair<bool, Card>> zip;
+
+				std::transform (perm.begin (), perm.end (), PossibleEights.begin (), std::back_inserter (zip),
+					[](auto const& perm, auto const& c) {return std::make_pair (perm, c); });
+				
+
+				auto zipIt = std::remove_if (zip.begin (), zip.end (),
+					[](auto const& z) { return !z.first; });
+				
+				std::vector<Card> comb;
+				
+				std::transform (zip.begin (), zipIt, std::back_inserter (comb),
+					[](auto const& z) { return z.second; });
+
+				Combinations.push_back (comb);
 
 			} while (std::next_permutation (perm.begin (), perm.end ()));
 		}
+
 	}
 
-	auto bad_comb = std::remove_if (combinations.begin (), combinations.end (),
-		[&rank, &suit](auto const& cards) { return !(rank == cards[0].first || suit == cards[0].second || cards[0].first == PlayingCards::Rank::EIGHT); });
+	//If the current rank isn't 8 we need all the possible moves for the current rank
 
-	for (auto it = combinations.begin (); it != bad_comb; ++it)
+	if (rank != PlayingCards::Rank::EIGHT)
 	{
-		std::cout << "\t[" << (std::distance (combinations.begin (), it) + 1) << "]\t";
-		for (auto const& c : *it)
+		std::vector<Card> PossibleMatchingRanks;
+
+		std::remove_copy_if (PossibleMoves.begin (), PossibleMoves.end (), std::back_inserter (PossibleMatchingRanks),
+			[&rank](auto const& card) { return card.first != rank; });
+
+		std::transform (PossibleMatchingRanks.begin (), PossibleMatchingRanks.end (), std::inserter (MultiMapMoves, MultiMapMoves.begin ()),
+			[&rank](auto const& card) { return std::make_pair (rank, card); });
+
+
+		if (!PossibleMatchingRanks.empty ())
 		{
-			 std::cout << PlayingCards::to_string (c) << " ";
+			auto n = PossibleMatchingRanks.size ();
+
+			for (auto r = n; r > 0; --r)
+			{
+				std::vector<bool> perm (n);
+				std::fill (perm.end () - r, perm.end (), true);
+
+				do {
+					std::vector<std::pair<bool, Card>> zip;
+
+					std::transform (perm.begin (), perm.end (), PossibleMatchingRanks.begin (), std::back_inserter (zip),
+						[](auto const& perm, auto const& c) {return std::make_pair (perm, c); });
+
+
+					auto zipIt = std::remove_if (zip.begin (), zip.end (),
+						[](auto const& z) { return !z.first; });
+
+					std::vector<Card> comb;
+
+					std::transform (zip.begin (), zipIt, std::back_inserter (comb),
+						[](auto const& z) { return z.second; });
+
+					Combinations.push_back (comb);
+
+				} while (std::next_permutation (perm.begin (), perm.end ()));
+			}
+
 		}
-		std::cout << std::endl;
+	}
+
+	//Find all possible groups of lead by matching suits
+	std::vector<Card> PossibleMatchingSuits;
+
+	std::remove_copy_if (PossibleMoves.begin (), PossibleMoves.end (), std::back_inserter (PossibleMatchingSuits),
+		[&rank](auto const& card) { return (card.first == rank || card.first == PlayingCards::Rank::EIGHT); });
+
+
+	for (auto const& card : PossibleMatchingSuits)
+	{
+		std::vector<Card> OtherPossibleRanksMatchingSuit;
+
+		std::remove_copy_if (Hand.begin (), Hand.end (), std::back_inserter (OtherPossibleRanksMatchingSuit),
+			[&card](auto const& c) { return !(card.first == c.first && card.second != c.second); });
+
+		std::transform (OtherPossibleRanksMatchingSuit.begin (), OtherPossibleRanksMatchingSuit.end (), std::inserter (MultiMapMoves, MultiMapMoves.begin ()),
+			[&card](auto const& c) { return std::make_pair(card.first, c); });
+
+
+		if (!OtherPossibleRanksMatchingSuit.empty ())
+		{
+			auto n = OtherPossibleRanksMatchingSuit.size ();
+
+			for (auto r = static_cast<int>(n); r >= 0; --r)
+			{
+				std::vector<bool> perm (n);
+				std::fill (perm.end () - r, perm.end (), true);
+
+				do {
+					std::vector<std::pair<bool, Card>> zip;
+
+					std::transform (perm.begin (), perm.end (), OtherPossibleRanksMatchingSuit.begin (), std::back_inserter (zip),
+						[](auto const& perm, auto const& c) {return std::make_pair (perm, c); });
+
+
+					auto zipIt = std::remove_if (zip.begin (), zip.end (),
+						[](auto const& z) { return !z.first; });
+
+					std::vector<Card> comb;
+
+					comb.push_back (card);
+
+					std::transform (zip.begin (), zipIt, std::back_inserter (comb),
+						[](auto const& z) { return z.second; });
+
+					Combinations.push_back (comb);
+
+				} while (std::next_permutation (perm.begin (), perm.end ()));
+			}
+
+		}
 	}
 
 
-	int choice = 0;
+	if (!Combinations.empty ())
+	{
+		int i = 1;
+		for (const auto& comb : Combinations)
+		{
+			std::cout << "\t[" << (i++) << "]\t";
+			for (auto const& c : comb)
+			{
+				std::cout << PlayingCards::to_string (c) << " ";
+			}
+			std::cout << std::endl;
+		}
 
-	std::cin >> choice;
+
+		int choice = 0;
+
+		std::cin >> choice;
+	}
+
 }
 
 const std::string & Player::get_name () const
