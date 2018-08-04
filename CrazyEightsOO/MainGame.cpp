@@ -136,32 +136,7 @@ void MainGame::run ()
 	{
 		std::cout << Players[ActivePlayerNum].get_name () << ", the starting card is an eight. Which suit would you like to start the game off with?" << std::endl;
 
-		std::cout << "Your hand is : \t" << Players[ActivePlayerNum].display_hand () << std::endl;
-
-		std::cout << "Suit:\t";
-
-		PlayingCards::Suit PlayersChoice;
-		std::string choice;
-
-		std::cin.ignore (std::numeric_limits<std::streamsize>::max (), '\n');
-
-		std::getline (std::cin, choice);
-		
-		PlayersChoice = PlayingCards::string_to_suit (choice);
-
-		while (PlayersChoice == PlayingCards::Suit::NO_SUIT)
-		{
-			std::cout << "Sorry, that suit is unrecognized. Please try entering a valid suit (spade, heart, club, diamond). Case does not matter." << std::endl;
-
-			std::cout << "Suit:\t";
-
-			std::getline (std::cin, choice);
-
-			PlayersChoice = PlayingCards::string_to_suit (choice);
-		}
-
-
-		CurrentSuit = PlayersChoice;
+		CurrentSuit = PromptPlayerForSuit (Players[ActivePlayerNum]);
 	}
 
 	while (!GameShouldStopRunning)
@@ -172,10 +147,42 @@ void MainGame::run ()
 
 		std::cout << "The top chain to play on is:\t" << display_discard_chain () << std::endl;
 		std::cout << "The current suit is:\t" << PlayingCards::suit_full_name (CurrentSuit) << std::endl;
-		ActivePlayer.prompt_action ();
+		
+
+		auto top_card = Discard.peek_top_card ();
+
+		if (top_card == std::nullopt) std::runtime_error ("Missing card indicating play");
+		ActivePlayer.prompt_action ((*top_card).first, CurrentSuit);
 
 		++ActivePlayerNum %= Players.size ();
 
 
 	}
+}
+
+PlayingCards::Suit MainGame::PromptPlayerForSuit (Player& player)
+{
+	std::cout << "Your hand is : \t" << player.display_hand () << std::endl;
+
+	std::cout << "Suit:\t";
+
+	PlayingCards::Suit PlayersChoice;
+	std::string choice;
+
+	std::getline (std::cin, choice);
+
+	PlayersChoice = PlayingCards::string_to_suit (choice);
+
+	while (PlayersChoice == PlayingCards::Suit::NO_SUIT)
+	{
+		std::cout << "Sorry, that suit is unrecognized. Please try entering a valid suit (spade, heart, club, diamond). Case does not matter." << std::endl;
+
+		std::cout << "Suit:\t";
+
+		std::getline (std::cin, choice);
+
+		PlayersChoice = PlayingCards::string_to_suit (choice);
+	}
+
+	return PlayersChoice;
 }

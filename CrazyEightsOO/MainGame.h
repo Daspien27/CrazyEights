@@ -31,6 +31,7 @@ public:
 	int get_player_count ();
 	void shuffle_players (std::vector<Player> &AllPlayers);
 	void run ();
+	PlayingCards::Suit PromptPlayerForSuit (Player& player);
 };
 
 void print_player_list (std::vector<Player> &AllPlayers);

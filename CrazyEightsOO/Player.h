@@ -14,7 +14,7 @@ public:
 
 	~Player ();
 
-	void prompt_action ();
+	void prompt_action (PlayingCards::Rank rank, PlayingCards::Suit suit);
 
 	const std::string& get_name () const;
 	std::string display_hand () const;
