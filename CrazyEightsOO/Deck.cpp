@@ -12,7 +12,7 @@ namespace playing_cards
 		{
 			auto R = N;
 			N = static_cast<Rank> ((static_cast<int> (N) + 1) % (NUM_CARDS_PER_SUIT + 1));
-			N = (static_cast<int> (N) == 0) ? Rank::KING : N;
+			N = static_cast<int> (N) == 0 ? Rank::KING : N;
 			return std::make_pair (R, Suit);
 		};
 

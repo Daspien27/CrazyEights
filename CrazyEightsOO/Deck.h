@@ -11,40 +11,37 @@ namespace playing_cards
 
 	enum class Suit : char
 	{
-		HEART = '\3',
-		CLUB = '\5',
-		DIAMOND = '\4',
-		SPADE = '\6',
-
-		NO_SUIT = 'J'
+		HEART = '\3'
+		, CLUB = '\5'
+		, DIAMOND = '\4'
+		, SPADE = '\6'
+		, NO_SUIT = 'J'
 	};
 
 	enum class Rank : int
 	{
-		ACE = 1,
-		TWO = 2,
-		THREE = 3,
-		FOUR = 4,
-		FIVE = 5,
-		SIX = 6,
-		SEVEN = 7,
-		EIGHT = 8,
-		NINE = 9,
-		TEN = 10,
-		JACK = 11,
-		QUEEN = 12,
-		KING = 13,
-
-		JOKER = 99
+		ACE = 1
+		, TWO = 2
+		, THREE = 3
+		, FOUR = 4
+		, FIVE = 5
+		, SIX = 6
+		, SEVEN = 7
+		, EIGHT = 8
+		, NINE = 9
+		, TEN = 10
+		, JACK = 11
+		, QUEEN = 12
+		, KING = 13
+		, JOKER = 99
 	};
 
 	enum class DeckOrder
 	{
-		STANDARD,
-		//A-K Spades, A-K Diamond, K-A Clubs, K-A Hearts
-		SORTED,
-		SHUFFLED,
-		EMPTY,
+		STANDARD //A-K Spades, A-K Diamond, K-A Clubs, K-A Hearts
+		, SORTED
+		, SHUFFLED
+		, EMPTY
 	};
 
 	using Card = std::pair<Rank, Suit>;
