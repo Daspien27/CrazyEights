@@ -14,10 +14,10 @@ public:
 	explicit Player (const std::string& NameUse);
 
 	void find_possible_eight_moves(std::vector<std::vector<playing_cards::Card>>& Combinations,
-	                               std::vector<playing_cards::Card> PossibleMoves);
+	                               std::vector<playing_cards::Card> PossibleMoves) const;
 	void find_possible_matching_rank_moves(playing_cards::Rank PromptedRank,
 	                                       std::vector<std::vector<playing_cards::Card>>& Combinations,
-	                                       std::vector<playing_cards::Card> PossibleMoves);
+	                                       std::vector<playing_cards::Card> PossibleMoves) const;
 	void find_possible_matching_suit_moves(playing_cards::Rank PromptedRank,
 	                                       std::vector<std::vector<playing_cards::Card>>& Combinations,
 	                                       std::vector<playing_cards::Card> PossibleMoves);

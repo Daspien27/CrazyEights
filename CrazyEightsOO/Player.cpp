@@ -11,7 +11,7 @@ Player::Player (const std::string& NameUse) :
 
 
 void Player::find_possible_eight_moves(std::vector<std::vector<playing_cards::Card>>& Combinations,
-                                       std::vector<playing_cards::Card> PossibleMoves)
+                                       std::vector<playing_cards::Card> PossibleMoves) const
 {
 	std::vector<playing_cards::Card> PossibleEights;
 
@@ -20,39 +20,31 @@ void Player::find_possible_eight_moves(std::vector<std::vector<playing_cards::Ca
 
 	if (!PossibleEights.empty ())
 	{
-		const auto N = PossibleEights.size ();
+		const auto CardSort = [](auto const& A, auto const& B)
+		{ return static_cast<char> (A.second) < static_cast<char> (B.second); };
 
-		for (auto R = N; R > 0; --R)
-		{
-			std::vector<int> Perm (N);
-			std::iota (Perm.end () - R, Perm.end (), 1);
+		std::sort (PossibleEights.begin (), PossibleEights.end (), CardSort);
 
-			do {
-				std::vector<std::pair<int, playing_cards::Card>> Zip;
+		do {
 
-				std::transform (Perm.begin (), Perm.end (), PossibleEights.begin (), std::back_inserter (Zip),
-				                [](auto const& P, auto const& C) {return std::make_pair (P, C); });
+			std::vector<std::vector<playing_cards::Card>> VecOfPossibleMatchingRanks;
 
+			std::transform (PossibleEights.begin (), PossibleEights.end (), std::back_inserter (VecOfPossibleMatchingRanks),
+				[](auto const& C) { return std::vector<playing_cards::Card>{ C }; });
 
-				const auto ZipIt = std::remove_if (Zip.begin (), Zip.end (),
-				                             [](auto const& Z) { return !Z.first; });
-				
-				std::vector<playing_cards::Card> Comb;
-				
-				std::transform (Zip.begin (), ZipIt, std::back_inserter (Comb),
-				                [](auto const& Z) { return Z.second; });
-
-				Combinations.push_back (Comb);
-
-			} while (std::next_permutation (Perm.begin (), Perm.end ()));
-		}
-
+			std::partial_sum (VecOfPossibleMatchingRanks.begin (), VecOfPossibleMatchingRanks.end (), std::back_inserter (Combinations),
+				[](auto A, auto const& B)
+			{
+				A.push_back (B[0]);
+				return A;
+			});
+		} while (std::next_permutation (PossibleEights.begin (), PossibleEights.end (), CardSort));
 	}
 }
 
 void Player::find_possible_matching_rank_moves(playing_cards::Rank PromptedRank,
                                                std::vector<std::vector<playing_cards::Card>>& Combinations,
-                                               std::vector<playing_cards::Card> PossibleMoves)
+                                               std::vector<playing_cards::Card> PossibleMoves) const
 {
 	std::vector<playing_cards::Card> PossibleMatchingRanks;
 
@@ -61,33 +53,25 @@ void Player::find_possible_matching_rank_moves(playing_cards::Rank PromptedRank,
 
 	if (!PossibleMatchingRanks.empty ())
 	{
-		const auto N = PossibleMatchingRanks.size ();
+		const auto CardSort = [](auto const& A, auto const& B) 
+		{ return static_cast<char> (A.second) < static_cast<char> (B.second); };
 
-		for (auto R = N; R > 0; --R)
-		{
-			std::vector<int> Perm (N);
-			std::iota (Perm.end () - R, Perm.end (), 1);
+		std::sort (PossibleMatchingRanks.begin (), PossibleMatchingRanks.end (), CardSort);
 
-			do {
-				std::vector<std::pair<int, playing_cards::Card>> Zip;
+		do {
 
-				std::transform (Perm.begin (), Perm.end (), PossibleMatchingRanks.begin (), std::back_inserter (Zip),
-				                [](auto const& P, auto const& C) {return std::make_pair (P, C); });
+			std::vector<std::vector<playing_cards::Card>> VecOfPossibleMatchingRanks;
 
+			std::transform (PossibleMatchingRanks.begin (), PossibleMatchingRanks.end (), std::back_inserter (VecOfPossibleMatchingRanks),
+				[](auto const& C) { return std::vector<playing_cards::Card>{ C }; });
 
-				const auto ZipIt = std::remove_if (Zip.begin (), Zip.end (),
-				                                   [](auto const& Z) { return !Z.first; });
-
-				std::vector<playing_cards::Card> Comb;
-
-				std::transform (Zip.begin (), ZipIt, std::back_inserter (Comb),
-				                [](auto const& Z) { return Z.second; });
-
-				Combinations.push_back (Comb);
-
-			} while (std::next_permutation (Perm.begin (), Perm.end ()));
-		}
-
+			std::partial_sum (VecOfPossibleMatchingRanks.begin (), VecOfPossibleMatchingRanks.end (), std::back_inserter(Combinations),
+				[](auto A, auto const& B)
+			{
+				A.push_back (B[0]); 
+				return A;
+			});
+		} while (std::next_permutation (PossibleMatchingRanks.begin (), PossibleMatchingRanks.end (), CardSort));
 	}
 }
 
@@ -110,36 +94,34 @@ void Player::find_possible_matching_suit_moves(playing_cards::Rank PromptedRank,
 
 		if (!OtherPossibleRanksMatchingSuit.empty ())
 		{
-			const auto N = OtherPossibleRanksMatchingSuit.size ();
+			const auto CardSort = [](auto const& A, auto const& B)
+			{ return static_cast<char> (A.second) < static_cast<char> (B.second); };
 
-			for (auto R = static_cast<int>(N); R >= 0; --R)
-			{
-				std::vector<int> Perm (N);
-				std::iota (Perm.end () - R, Perm.end (), 1);
+			std::sort (OtherPossibleRanksMatchingSuit.begin (), OtherPossibleRanksMatchingSuit.end (), CardSort);
 
-				do {
-					std::vector<std::pair<int, playing_cards::Card>> Zip;
+			do {
 
-					std::transform (Perm.begin (), Perm.end (), OtherPossibleRanksMatchingSuit.begin (), std::back_inserter (Zip),
-					                [](auto const& P, auto const& C) {return std::make_pair (P, C); });
+				std::vector<std::vector<playing_cards::Card>> VecOfPossibleMatchingSuits;
+
+				std::transform (OtherPossibleRanksMatchingSuit.begin (), OtherPossibleRanksMatchingSuit.end (), std::back_inserter (VecOfPossibleMatchingSuits),
+					[](auto const& C) { return std::vector<playing_cards::Card>{ C }; });
 
 
-					const auto ZipIt = std::remove_if (Zip.begin (), Zip.end (),
-					                             [](auto const& Z) { return !Z.first; });
+				std::partial_sum (VecOfPossibleMatchingSuits.begin (), VecOfPossibleMatchingSuits.end (), VecOfPossibleMatchingSuits.begin (),
+					[](auto A, auto const& B)
+				{
+					A.push_back (B[0]);
+					return A;
+				});
 
-					std::vector<playing_cards::Card> Comb;
+				std::transform (VecOfPossibleMatchingSuits.begin (), VecOfPossibleMatchingSuits.end (), std::back_inserter(Combinations),
+					[&SuitCard](auto V) {V.insert (V.begin (), SuitCard); return V; });
 
-					Comb.push_back (SuitCard);
 
-					std::transform (Zip.begin (), ZipIt, std::back_inserter (Comb),
-					                [](auto const& Z) { return Z.second; });
-
-					Combinations.push_back (Comb);
-
-				} while (std::next_permutation (Perm.begin (), Perm.end ()));
-			}
-
+			} while (std::next_permutation (OtherPossibleRanksMatchingSuit.begin (), OtherPossibleRanksMatchingSuit.end (), CardSort));
 		}
+
+		Combinations.push_back ({ SuitCard });
 	}
 }
 
