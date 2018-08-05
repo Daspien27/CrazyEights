@@ -149,6 +149,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Command.h" />
+    <ClInclude Include="CrazyEights.h" />
     <ClInclude Include="Deck.h" />
     <ClInclude Include="MainGame.h" />
     <ClInclude Include="Player.h" />
@@ -156,6 +158,8 @@
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Command.cpp" />
+    <ClCompile Include="CrazyEights.cpp" />
     <ClCompile Include="CrazyEightsOO.cpp" />
     <ClCompile Include="Deck.cpp" />
     <ClCompile Include="MainGame.cpp" />

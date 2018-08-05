@@ -31,8 +31,8 @@ namespace playing_cards
 		std::generate (Cards.begin () + NUM_CARDS_PER_SUIT, Cards.begin () + 2 * NUM_CARDS_PER_SUIT, AscGen); //A-K CLUB
 
 		Suit = Suit::DIAMOND;
-		std::generate (Cards.begin () + 2 * NUM_CARDS_PER_SUIT, Cards.begin () + 3 * NUM_CARDS_PER_SUIT, DescGen);
-		//K-A DIAMOND
+		std::generate (Cards.begin () + 2 * NUM_CARDS_PER_SUIT, Cards.begin () + 3 * NUM_CARDS_PER_SUIT
+		               , DescGen); //K-A DIAMOND
 
 		Suit = Suit::SPADE;
 		std::generate (Cards.begin () + 3 * NUM_CARDS_PER_SUIT, Cards.end (), DescGen); //K-A SPADE
@@ -163,20 +163,55 @@ namespace playing_cards
 		return Card;
 	}
 
-	void Deck::place_card_into_deck (Card card)
+	std::vector<Card> Deck::pick_up_n_from_deck (unsigned int NumCards)
 	{
-		Cards.push_back (card);
+		if (Cards.size () < NumCards) throw std::runtime_error ("Not enough cards in deck remaining. Cannot pick up that many cards.");
+
+		std::vector<Card> CardSeq (NumCards);
+		auto& ThisDeckCards = Cards;
+
+		std::transform (CardSeq.begin (), CardSeq.end (), CardSeq.begin (),
+			[&ThisDeckCards](auto const& C) mutable { auto TopCard = ThisDeckCards.back (); ThisDeckCards.pop_back (); return TopCard; });
+		auto Card = Cards.back ();
+		Cards.pop_back ();
+
+		return CardSeq;
 	}
 
-	void Deck::shuffle_into_this_deck (Deck const& OtherDeck)
+	std::vector<Card> Deck::pick_up_all_from_deck ()
+	{
+		std::vector<Card> CardSeq (Cards.rbegin (), Cards.rend ());
+		Cards.clear ();
+
+		return CardSeq;
+	}
+
+	void Deck::place_card_into_deck (const Card ToPlace)
+	{
+		Cards.push_back (ToPlace);
+	}
+
+	void Deck::place_cards_into_deck (std::vector<Card> const& ToPlace)
+	{
+		Cards.insert (Cards.end (), ToPlace.begin (), ToPlace.end());
+	}
+
+	void Deck::shuffle_into_this_deck (Deck& OtherDeck)
 	{
 		Cards.insert (Cards.end (), OtherDeck.Cards.begin (), OtherDeck.Cards.end ());
+		OtherDeck.Cards.clear ();
+
 		shuffle_deck ();
 	}
 
 	void Deck::insert_deck_into_bottom_of_this_deck (Deck const& OtherDeck)
 	{
 		Cards.insert (Cards.begin (), OtherDeck.Cards.begin (), OtherDeck.Cards.end ());
+	}
+
+	unsigned Deck::num_remaining_cards () const
+	{
+		return Cards.size ();
 	}
 
 	std::optional<Card> Deck::peek_top_card ()
@@ -195,7 +230,10 @@ namespace playing_cards
 	{
 		switch (Rank)
 		{
-		case Rank::ACE: return " A";
+		case Rank::ACE:
+
+			return " A";
+
 		case Rank::TWO:
 		case Rank::THREE:
 		case Rank::FOUR:
@@ -249,15 +287,19 @@ namespace playing_cards
 		case Suit::DIAMOND:
 
 			return "diamond";
+
 		case Suit::HEART:
 
 			return "heart";
+
 		case Suit::SPADE:
 
 			return "spade";
+
 		case Suit::NO_SUIT:
 
 			return "no suit";
+
 		default:
 
 			throw std::runtime_error ("Unrecognized suit");

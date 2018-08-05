@@ -1,4 +1,5 @@
 #pragma once
+#include "CrazyEights.h"
 
 class Player;
 
@@ -48,6 +49,8 @@ namespace playing_cards
 
 	class Deck
 	{
+		friend void crazy_eights::shuffle_discard_into_deck (playing_cards::Deck& DeckUse, playing_cards::Deck& Discard);
+
 		std::vector<Card> Cards {};
 
 		void build_standard_deck ();
@@ -61,12 +64,17 @@ namespace playing_cards
 		void deal_n_to_each (unsigned int NumCards, std::vector<Player>& Players);
 
 		Card pick_up_from_deck ();
+		std::vector<Card> pick_up_n_from_deck (unsigned int NumCards);
+		std::vector<Card> pick_up_all_from_deck ();
 
 		void place_card_into_deck (Card ToPlace);
+		void place_cards_into_deck (std::vector<Card> const& ToPlace);
 
 		void shuffle_deck ();
-		void shuffle_into_this_deck (Deck const& OtherDeck);
+		void shuffle_into_this_deck (Deck& OtherDeck);
 		void insert_deck_into_bottom_of_this_deck (Deck const& OtherDeck);
+
+		unsigned int num_remaining_cards () const;
 
 		std::optional<Card> peek_top_card ();
 	};

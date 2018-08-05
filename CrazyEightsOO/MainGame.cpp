@@ -138,6 +138,7 @@ void MainGame::run ()
 		auto TopCard = Discard.peek_top_card ();
 
 		if (TopCard == std::nullopt) std::runtime_error ("Missing card indicating play");
+		
 		ActivePlayer.prompt_action ((*TopCard).first, CurrentSuit);
 
 		++ActivePlayerNum %= Players.size ();

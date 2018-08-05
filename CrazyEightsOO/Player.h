@@ -34,4 +34,5 @@ public:
 	std::string display_hand () const;
 
 	void place_in_hand (playing_cards::Card CardForHand);
+	void place_in_hand (std::vector<playing_cards::Card> const& CardsForHand);
 };

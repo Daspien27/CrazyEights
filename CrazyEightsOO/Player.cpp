@@ -170,7 +170,13 @@ std::string Player::display_hand () const
 	                        [] (auto HandStr, auto const& C) { return HandStr + " " + playing_cards::to_string (C); });
 }
 
-void Player::place_in_hand (const playing_cards::Card CardForHand)
+void Player::place_in_hand (playing_cards::Card const CardForHand)
 {
 	Hand.push_back (CardForHand);
+}
+
+
+void Player::place_in_hand (std::vector<playing_cards::Card> const& CardsForHand)
+{
+	Hand.insert (Hand.end (), CardsForHand.cbegin (), CardsForHand.cend());
 }
