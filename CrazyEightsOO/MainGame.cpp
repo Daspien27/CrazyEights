@@ -10,15 +10,14 @@ std::vector<Player> MainGame::get_n_player_names (int N)
 
 	std::cin.ignore (std::numeric_limits<std::streamsize>::max (), '\n');
 
-	const auto Gen = []() {
+	std::generate (Players.begin (), Players.end (), 
+		[]() {
 		std::cout << "Name:\t";
 		std::string PlayerName;
 		std::getline (std::cin, PlayerName);
 		std::cout << "You have chosen:\t" << PlayerName << std::endl;
 		return Player (PlayerName);
-	};
-
-	std::generate (Players.begin (), Players.end (), Gen);
+	});
 
 	return Players;
 }
@@ -64,9 +63,8 @@ MainGame::MainGame (std::vector<std::string> PlayerNames) :
 
 void print_player_list (std::vector<Player> &AllPlayers)
 {
-	const auto PrintNameWTab = [](auto const& A) { std::cout << "\t" << A.get_name () << std::endl; };
-
-	std::for_each (AllPlayers.begin (), AllPlayers.end (), PrintNameWTab);
+	std::for_each (AllPlayers.begin (), AllPlayers.end (), 
+		[](auto const& A) { std::cout << "\t" << A.get_name () << std::endl; });
 }
 
 int MainGame::get_player_count ()
@@ -103,18 +101,10 @@ void MainGame::init ()
 {
 	shuffle_players (Players);
 
-	ActivePlayerNum = 0;
-}
+	Deck = playing_cards::Deck (playing_cards::DeckOrder::SHUFFLED);
+	Discard = playing_cards::Deck (playing_cards::DeckOrder::EMPTY);
 
-
-void MainGame::run ()
-{	
-	//Game loop
-	using playing_cards::Suit;
-
-	std::cout << static_cast<char>(Suit::HEART) << static_cast<char>(Suit::DIAMOND) 
-		<< static_cast<char>(Suit::SPADE) << static_cast<char>(Suit::CLUB) << std::endl;
-
+	ActivePlayerNum = Players.size() - 1;
 
 	Deck.deal_n_to_each (8, Players);
 
@@ -125,11 +115,16 @@ void MainGame::run ()
 
 	if (InitialCard.first == playing_cards::Rank::EIGHT)
 	{
-		std::cout << Players[ActivePlayerNum].get_name () << ", the starting card is an eight. Which suit would you like to start the game off with?" << std::endl;
+		std::cout << Players[ActivePlayerNum].get_name () << ", you are the dealer and the starting card is an eight. Which suit would you like to start the game off with?" << std::endl;
 
 		CurrentSuit = prompt_player_for_suit (Players[ActivePlayerNum]);
 	}
+}
 
+
+void MainGame::run ()
+{	
+	//Game loop
 	while (!GameShouldStopRunning)
 	{
 		auto& ActivePlayer = Players[ActivePlayerNum];
@@ -146,19 +141,15 @@ void MainGame::run ()
 		ActivePlayer.prompt_action ((*TopCard).first, CurrentSuit);
 
 		++ActivePlayerNum %= Players.size ();
-
-
 	}
 }
 
 playing_cards::Suit MainGame::prompt_player_for_suit (Player& Player) const
 {
 	std::cout << "Your hand is : \t" << Player.display_hand () << std::endl;
-
 	std::cout << "Suit:\t";
 
 	std::string Choice;
-
 	std::getline (std::cin, Choice);
 
 	auto PlayersChoice = playing_cards::string_to_suit (Choice);
@@ -166,7 +157,6 @@ playing_cards::Suit MainGame::prompt_player_for_suit (Player& Player) const
 	while (PlayersChoice == playing_cards::Suit::NO_SUIT)
 	{
 		std::cout << "Sorry, that suit is unrecognized. Please try entering a valid suit (spade, heart, club, diamond). Case does not matter." << std::endl;
-
 		std::cout << "Suit:\t";
 
 		std::getline (std::cin, Choice);

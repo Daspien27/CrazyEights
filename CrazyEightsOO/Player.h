@@ -15,6 +15,7 @@ public:
 
 	void find_possible_eight_moves(std::vector<std::vector<playing_cards::Card>>& Combinations,
 	                               std::vector<playing_cards::Card> PossibleMoves) const;
+	std::vector<std::vector<playing_cards::Card>> permute_all_combinations(std::vector<playing_cards::Card> PossibleMatchingRanks) const;
 	void find_possible_matching_rank_moves(playing_cards::Rank PromptedRank,
 	                                       std::vector<std::vector<playing_cards::Card>>& Combinations,
 	                                       std::vector<playing_cards::Card> PossibleMoves) const;
