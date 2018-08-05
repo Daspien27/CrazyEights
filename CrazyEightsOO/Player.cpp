@@ -15,7 +15,7 @@ std::vector<std::vector<playing_cards::Card>> Player::permute_all_combinations (
 
 	if (!PossibleMatching.empty ())
 	{
-		const auto CardSort = [](auto const& A, auto const& B)
+		auto const CardSort = [](auto const& A, auto const& B)
 		{ return static_cast<char> (A.second) < static_cast<char> (B.second); };
 
 		std::sort (PossibleMatching.begin (), PossibleMatching.end (), CardSort);
@@ -39,30 +39,14 @@ std::vector<std::vector<playing_cards::Card>> Player::permute_all_combinations (
 	return Combinations;
 }
 
-void Player::find_possible_eight_moves(std::vector<std::vector<playing_cards::Card>>& Combinations,
-                                       std::vector<playing_cards::Card> PossibleMoves) const
-{
-	std::vector<playing_cards::Card> PossibleEights;
-
-	std::remove_copy_if (PossibleMoves.begin (), PossibleMoves.end (), std::back_inserter (PossibleEights),
-	                     [](auto const& C) { return C.first != playing_cards::Rank::EIGHT; });
-
-
-	auto RankCombs = permute_all_combinations (PossibleEights);
-
-	Combinations.insert (Combinations.end (), RankCombs.begin (), RankCombs.end ());
-}
-
-
-
 void Player::find_possible_matching_rank_moves(playing_cards::Rank PromptedRank,
                                                std::vector<std::vector<playing_cards::Card>>& Combinations,
                                                std::vector<playing_cards::Card> PossibleMoves) const
 {
 	std::vector<playing_cards::Card> PossibleMatchingRanks;
 
-	std::remove_copy_if (PossibleMoves.begin (), PossibleMoves.end (), std::back_inserter (PossibleMatchingRanks),
-	                     [&PromptedRank](auto const& C) { return C.first != PromptedRank; });
+	std::copy_if (PossibleMoves.begin (), PossibleMoves.end (), std::back_inserter (PossibleMatchingRanks),
+	                     [&PromptedRank](auto const& C) { return C.first == PromptedRank; });
 
 	auto RankCombs = permute_all_combinations(PossibleMatchingRanks);
 
@@ -73,12 +57,7 @@ void Player::find_possible_matching_suit_moves(playing_cards::Rank PromptedRank,
                                                std::vector<std::vector<playing_cards::Card>>& Combinations,
                                                std::vector<playing_cards::Card> PossibleMoves)
 {
-	std::vector<playing_cards::Card> PossibleMatchingSuits;
-
-	std::remove_copy_if (PossibleMoves.begin (), PossibleMoves.end (), std::back_inserter (PossibleMatchingSuits),
-	                     [&PromptedRank](auto const& C) { return (C.first == PromptedRank || C.first == playing_cards::Rank::EIGHT); });
-
-	for (auto const& SuitCard : PossibleMatchingSuits)
+	for (auto const& SuitCard : PossibleMoves)
 	{
 		std::vector<playing_cards::Card> OtherPossibleRanksMatchingSuit;
 
@@ -94,38 +73,60 @@ void Player::find_possible_matching_suit_moves(playing_cards::Rank PromptedRank,
 	}
 }
 
-void Player::prompt_action (playing_cards::Rank PromptedRank, playing_cards::Suit PromptedSuit)
+void Player::find_possible_prompted_rank_moves(const playing_cards::Rank PromptedRank,
+                                               std::vector<std::vector<playing_cards::Card>>& Combinations,
+                                               const playing_cards::Rank CrazyRank)
 {
-	using playing_cards::Card;
-	using playing_cards::Rank;
+	std::vector<playing_cards::Card> PossibleMatchingRank;
 
-	std::vector<std::vector<Card>> Combinations;
+	std::copy_if (Hand.begin (), Hand.end(), std::back_inserter(PossibleMatchingRank),
+	              [&PromptedRank](auto const& C)
+	              {
+		              return (C.first == PromptedRank || C.first == playing_cards::Rank::EIGHT);
+	              });
 
-	std::vector<Card> PossibleMoves;
+	find_possible_matching_rank_moves (CrazyRank, Combinations, PossibleMatchingRank);
 
-	std::remove_copy_if (Hand.begin (), Hand.end(), std::back_inserter(PossibleMoves),
-		[&PromptedRank, &PromptedSuit](auto const& C) { return !(C.second == PromptedSuit || C.first == PromptedRank || C.first == Rank::EIGHT); });
-
-
-	find_possible_eight_moves(Combinations, PossibleMoves);
-
-	if (PromptedRank != Rank::EIGHT)
+	if (PromptedRank != CrazyRank)
 	{
-		find_possible_matching_rank_moves(PromptedRank, Combinations, PossibleMoves);
+		find_possible_matching_rank_moves(PromptedRank, Combinations, PossibleMatchingRank);
 	}
+}
 
-	find_possible_matching_suit_moves(PromptedRank, Combinations, PossibleMoves);
+void Player::find_possible_prompted_suit_moves(playing_cards::Suit PromptedSuit, playing_cards::Rank PromptedRank, std::vector<std::vector<playing_cards::Card>>&
+                                               Combinations)
+{
+	std::vector<playing_cards::Card> PossibleMatchingSuits;
+
+	std::copy_if (Hand.begin (), Hand.end (), std::back_inserter (PossibleMatchingSuits),
+	              [&PromptedSuit](auto const& C) { return C.second == PromptedSuit; });
+
+	find_possible_matching_suit_moves(PromptedRank, Combinations, PossibleMatchingSuits);
+}
+
+void Player::display_combinations(std::vector<std::vector<playing_cards::Card>> const& Combinations)
+{
+	std::for_each (Combinations.begin (), Combinations.end (),
+	               [I = 1](auto const& Comb) mutable
+	               {
+		               auto const CombStr = std::accumulate (std::next (Comb.begin ()), Comb.end (), playing_cards::to_string (*Comb.begin ()),
+		                                                     [](auto RunningString, auto const& C) { return RunningString + " " + playing_cards::to_string (C); });
+
+		               std::cout << "\t[" << (I++) << "]\t" << CombStr << std::endl;
+	               });
+}
+
+void Player::prompt_action (const playing_cards::Rank PromptedRank, const playing_cards::Suit PromptedSuit)
+{
+	std::vector<std::vector<playing_cards::Card>> Combinations;
+
+	find_possible_prompted_rank_moves(PromptedRank, Combinations, playing_cards::Rank::EIGHT);
+
+	find_possible_prompted_suit_moves(PromptedSuit, PromptedRank, Combinations);
 
 	if (!Combinations.empty ())
 	{
-		std::for_each (Combinations.begin (), Combinations.end (),
-			[I = 1](auto const& Comb) mutable
-		{
-			const auto CombStr = std::accumulate (std::next (Comb.begin ()), Comb.end (), playing_cards::to_string (*Comb.begin ()),
-				[](auto RunningString, auto const& C) { return RunningString + " " + playing_cards::to_string (C); });
-
-			std::cout << "\t[" << (I++) << "]\t" << CombStr << std::endl;
-		});
+		display_combinations(Combinations);
 		
 		auto Choice = 0;
 
