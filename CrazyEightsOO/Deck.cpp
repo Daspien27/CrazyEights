@@ -2,201 +2,195 @@
 #include "Deck.h"
 #include "Player.h"
 
-namespace PlayingCards {
-
-	void Deck::build_standard_deck ()
+namespace playing_cards
+{
+	void Deck::build_standard_deck()
 	{
-		Suit suit;
+		Suit Suit;
 
-		auto AscGen = [n = Rank::ACE, &suit] () mutable
+		const auto AscGen = [N = Rank::ACE, &Suit]() mutable
 		{
-			auto r = n;
-			n = static_cast<Rank> ((static_cast<int> (n) + 1) % (NUM_CARDS_PER_SUIT + 1));
-			n = (static_cast<int> (n) == 0) ? Rank::KING : n;
-			return std::make_pair (r, suit);
+			auto R = N;
+			N = static_cast<Rank>((static_cast<int>(N) + 1) % (NUM_CARDS_PER_SUIT + 1));
+			N = (static_cast<int>(N) == 0) ? Rank::KING : N;
+			return std::make_pair(R, Suit);
 		};
 
-		auto DescGen = [n = Rank::KING, &suit] () mutable
+		const auto DescGen = [N = Rank::KING, &Suit]() mutable
 		{
-			auto r = n;
-			n = static_cast<Rank> ((static_cast<int> (n) - 1) % (NUM_CARDS_PER_SUIT + 1));
-			n = (static_cast<int> (n) == 0) ? Rank::KING : n;
-			return std::make_pair (r, suit);
+			auto R = N;
+			N = static_cast<Rank>((static_cast<int>(N) - 1) % (NUM_CARDS_PER_SUIT + 1));
+			N = (static_cast<int>(N) == 0) ? Rank::KING : N;
+			return std::make_pair(R, Suit);
 		};
 
-		suit = Suit::HEART;
-		std::generate (cards.begin (), cards.begin () + NUM_CARDS_PER_SUIT, AscGen); //A-K Heart
+		Suit = Suit::HEART;
+		std::generate(Cards.begin(), Cards.begin() + NUM_CARDS_PER_SUIT, AscGen); //A-K Heart
 
-		suit = Suit::CLUB;
-		std::generate (cards.begin () + NUM_CARDS_PER_SUIT, cards.begin () + 2 * NUM_CARDS_PER_SUIT, AscGen); //A-K CLUB
+		Suit = Suit::CLUB;
+		std::generate(Cards.begin() + NUM_CARDS_PER_SUIT, Cards.begin() + 2 * NUM_CARDS_PER_SUIT, AscGen); //A-K CLUB
 
-		suit = Suit::DIAMOND;
-		std::generate (cards.begin () + 2 * NUM_CARDS_PER_SUIT, cards.begin () + 3 * NUM_CARDS_PER_SUIT, DescGen); //K-A DIAMOND
+		Suit = Suit::DIAMOND;
+		std::generate(Cards.begin() + 2 * NUM_CARDS_PER_SUIT, Cards.begin() + 3 * NUM_CARDS_PER_SUIT, DescGen);
+		//K-A DIAMOND
 
-		suit = Suit::SPADE;
-		std::generate (cards.begin () + 3 * NUM_CARDS_PER_SUIT, cards.end (), DescGen); //K-A SPADE
+		Suit = Suit::SPADE;
+		std::generate(Cards.begin() + 3 * NUM_CARDS_PER_SUIT, Cards.end(), DescGen); //K-A SPADE
 	}
 
-	void Deck::build_sorted_deck ()
+	void Deck::build_sorted_deck()
 	{
-		Suit suit;
-		auto SGen = [n = Rank::KING, &suit] () mutable
+		Suit Suit;
+		const auto SGen = [N = Rank::KING, &Suit]() mutable
 		{
-			auto r = n;
-			n = static_cast<Rank> (static_cast<int> (n) - 1);
+			auto R = N;
+			N = static_cast<Rank>(static_cast<int>(N) - 1);
 
-			return std::make_pair (r, suit);
+			return std::make_pair(R, Suit);
 		};
 
-		suit = Suit::SPADE;
-		std::generate (cards.begin (), cards.begin () + NUM_CARDS_PER_SUIT, SGen); //A-K SPADE
+		Suit = Suit::SPADE;
+		std::generate(Cards.begin(), Cards.begin() + NUM_CARDS_PER_SUIT, SGen); //A-K SPADE
 
-		suit = Suit::DIAMOND;
-		std::generate (cards.begin () + NUM_CARDS_PER_SUIT, cards.begin () + 2 * NUM_CARDS_PER_SUIT, SGen); //A-K DIAMOND
+		Suit = Suit::DIAMOND;
+		std::generate(Cards.begin() + NUM_CARDS_PER_SUIT, Cards.begin() + 2 * NUM_CARDS_PER_SUIT, SGen); //A-K DIAMOND
 
-		suit = Suit::CLUB;
-		std::generate (cards.begin () + 2 * NUM_CARDS_PER_SUIT, cards.begin () + 3 * NUM_CARDS_PER_SUIT, SGen); //A-K CLUB
+		Suit = Suit::CLUB;
+		std::generate(Cards.begin() + 2 * NUM_CARDS_PER_SUIT, Cards.begin() + 3 * NUM_CARDS_PER_SUIT, SGen); //A-K CLUB
 
-		suit = Suit::HEART;
-		std::generate (cards.begin () + 3 * NUM_CARDS_PER_SUIT, cards.end (), SGen); //A-K Heart
+		Suit = Suit::HEART;
+		std::generate(Cards.begin() + 3 * NUM_CARDS_PER_SUIT, Cards.end(), SGen); //A-K Heart
 	}
 
-	void Deck::shuffle_deck ()
+	void Deck::shuffle_deck()
 	{
-		std::random_device rd;
-		std::mt19937 g (rd ());
+		std::random_device Rd;
+		std::mt19937 G(Rd());
 
-		std::shuffle (cards.begin (), cards.end (), g);
+		std::shuffle(Cards.begin(), Cards.end(), G);
 	}
 
-	void Deck::build_shuffled_deck ()
+	void Deck::build_shuffled_deck()
 	{
-		build_sorted_deck ();
+		build_sorted_deck();
 
-		shuffle_deck ();
+		shuffle_deck();
 	}
 
-	Deck::Deck (DeckOrder order, bool IncludeJokers) :
-		cards (NUM_PLAYING_CARDS)
+	Deck::Deck(const DeckOrder Order, const bool IncludeJokers) :
+		Cards(NUM_PLAYING_CARDS)
 	{
-		switch (order)
+		switch (Order)
 		{
 		case DeckOrder::STANDARD:
 
-			build_standard_deck ();
+			build_standard_deck();
 
 			break;
-		
+
 		case DeckOrder::SORTED:
-			
-			build_sorted_deck ();
+
+			build_sorted_deck();
 
 			break;
 
 		case DeckOrder::SHUFFLED:
 
-			build_shuffled_deck ();
-			
+			build_shuffled_deck();
+
 			break;
 
 		case DeckOrder::EMPTY:
 
-			cards.clear ();
+			Cards.clear();
 
 			break;
 
 		default:
 
-			throw std::runtime_error ("Unrecognized deck order.");
-
-			break;
+			throw std::runtime_error("Unrecognized deck order.");
 		}
 
 		if (IncludeJokers)
 		{
-			cards.emplace (cards.begin (), Rank::JOKER, Suit::NO_SUIT);
-			cards.emplace_back (Rank::JOKER, Suit::NO_SUIT);
+			Cards.emplace(Cards.begin(), Rank::JOKER, Suit::NO_SUIT);
+			Cards.emplace_back(Rank::JOKER, Suit::NO_SUIT);
 
-			if (order == DeckOrder::SHUFFLED) shuffle_deck ();
+			if (Order == DeckOrder::SHUFFLED) shuffle_deck();
 		}
-
 	}
 
-	Deck::~Deck ()
+	void Deck::deal(unsigned int NumCards, std::vector<Player>& Players)
 	{
-	}
+		if (NumCards > Cards.size()) throw std::runtime_error("Not enough cards in deck to deal that many cards.");
 
-	void Deck::deal (unsigned int NumCards, std::vector<Player>& Players)
-	{
-		if (NumCards > cards.size ()) throw std::runtime_error ("Not enough cards in deck to deal that many cards.");
-
-		for (auto piter = Players.begin (); NumCards > 0; piter++, --NumCards)
+		for (auto PIter = Players.begin(); NumCards > 0; ++PIter, --NumCards)
 		{
-			if (piter == Players.end ()) piter = Players.begin ();
+			if (PIter == Players.end()) PIter = Players.begin();
 
-			auto card = pick_up_from_deck ();
+			const auto TopCard = pick_up_from_deck();
 
-			piter->place_in_hand (card);
+			PIter->place_in_hand(TopCard);
 		}
-
 	}
 
-	void Deck::deal_n_to_each (unsigned int NumCards, std::vector<Player>& Players)
+	void Deck::deal_n_to_each(unsigned int NumCards, std::vector<Player>& Players)
 	{
-		if (NumCards * Players.size () > cards.size ()) throw std::runtime_error ("Not enough cards in deck to deal that many cards.");
+		if (NumCards * Players.size() > Cards.size()) throw std::runtime_error(
+			"Not enough cards in deck to deal that many cards.");
 
-		for (unsigned int i = 0; i < NumCards && !cards.empty (); ++i)
+		for (unsigned int I = 0; I < NumCards && !Cards.empty(); ++I)
 		{
-			for (auto& p : Players)
+			for (auto& P : Players)
 			{
-					auto card = pick_up_from_deck ();
+				const auto TopCard = pick_up_from_deck();
 
-					p.place_in_hand (card);
+				P.place_in_hand(TopCard);
 			}
 		}
 	}
 
-	Card Deck::pick_up_from_deck ()
+	Card Deck::pick_up_from_deck()
 	{
-		if (cards.empty ()) throw std::runtime_error ("No cards in deck remaining. Cannot pick up.");
+		if (Cards.empty()) throw std::runtime_error("No cards in deck remaining. Cannot pick up.");
 
-		auto Card = cards.back ();
-		cards.pop_back ();
+		auto Card = Cards.back();
+		Cards.pop_back();
 
 		return Card;
 	}
 
-	void Deck::place_card_into_deck (Card card)
+	void Deck::place_card_into_deck(Card card)
 	{
-		cards.push_back (card);
+		Cards.push_back(card);
 	}
 
-	void Deck::shuffle_into_this_deck (Deck const & other_deck)
+	void Deck::shuffle_into_this_deck(Deck const& OtherDeck)
 	{
-		cards.insert (cards.end (), other_deck.cards.begin (), other_deck.cards.end ());
-		shuffle_deck ();
+		Cards.insert(Cards.end(), OtherDeck.Cards.begin(), OtherDeck.Cards.end());
+		shuffle_deck();
 	}
 
-	void Deck::insert_deck_into_bottom_of_this_deck (Deck const& other_deck)
+	void Deck::insert_deck_into_bottom_of_this_deck(Deck const& OtherDeck)
 	{
-		cards.insert (cards.begin (), other_deck.cards.begin (), other_deck.cards.end ());
+		Cards.insert(Cards.begin(), OtherDeck.Cards.begin(), OtherDeck.Cards.end());
 	}
 
-	std::optional<Card> Deck::peek_top_card ()
+	std::optional<Card> Deck::peek_top_card()
 	{
-		if (cards.empty ()) return std::nullopt;
+		if (Cards.empty()) return std::nullopt;
 
-		return std::make_optional (cards.back ());
+		return std::make_optional(Cards.back());
 	}
 
-	std::string to_string (Card const & card)
+	std::string to_string(Card const& Card)
 	{
-		return to_string (card.first) + to_string(card.second);
+		return to_string(Card.first) + to_string(Card.second);
 	}
 
-	std::string to_string (Rank const & rank)
+	std::string to_string(Rank const& Rank)
 	{
-		switch (rank)
+		switch (Rank)
 		{
 		case Rank::ACE: return " A";
 		case Rank::TWO:
@@ -208,7 +202,7 @@ namespace PlayingCards {
 		case Rank::EIGHT:
 		case Rank::NINE:
 
-			return " " + std::to_string (static_cast<int>(rank));
+			return " " + std::to_string(static_cast<int>(Rank));
 
 		case Rank::TEN:
 
@@ -232,22 +226,21 @@ namespace PlayingCards {
 
 		default:
 
-			throw std::runtime_error ("Unrecognized card rank.");
+			throw std::runtime_error("Unrecognized card rank.");
 		}
-
-		return "Err";
 	}
 
-	std::string to_string (Suit const & suit)
+	std::string to_string(Suit const& Suit)
 	{
-		return { static_cast<char> (suit) };
+		return {static_cast<char>(Suit)};
 	}
-	std::string suit_full_name (Suit const & suit)
+
+	std::string suit_full_name(Suit const& Suit)
 	{
-		switch (suit)
+		switch (Suit)
 		{
 		case Suit::CLUB:
-			
+
 			return "club";
 
 		case Suit::DIAMOND:
@@ -264,22 +257,20 @@ namespace PlayingCards {
 			return "no suit";
 		default:
 
-			throw std::runtime_error ("Unrecognized suit");
-
-			break;
+			throw std::runtime_error("Unrecognized suit");
 		}
-		return "Err";
 	}
-	Suit string_to_suit (std::string const & SuitStr)
-	{
-		std::string lc_str = SuitStr;
-		std::transform (lc_str.begin (), lc_str.end (), lc_str.begin (), ::tolower);
 
-		if (lc_str == "club") return Suit::CLUB;
-		if (lc_str == "diamond") return Suit::DIAMOND;
-		if (lc_str == "heart") return Suit::HEART;
-		if (lc_str == "spade") return Suit::SPADE;
-		
+	Suit string_to_suit(std::string const& SuitStr)
+	{
+		auto LowercaseStr = SuitStr;
+		std::transform(LowercaseStr.begin(), LowercaseStr.end(), LowercaseStr.begin(), tolower);
+
+		if (LowercaseStr == "club") return Suit::CLUB;
+		if (LowercaseStr == "diamond") return Suit::DIAMOND;
+		if (LowercaseStr == "heart") return Suit::HEART;
+		if (LowercaseStr == "spade") return Suit::SPADE;
+
 		return Suit::NO_SUIT;
 	}
 };

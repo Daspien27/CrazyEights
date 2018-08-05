@@ -2,7 +2,7 @@
 
 class Player;
 
-namespace PlayingCards {
+namespace playing_cards {
 
 	const int NUM_PLAYING_CARDS = 52;
 	const int NUM_PLAYING_CARDS_W_JOKERS = 54;
@@ -50,7 +50,7 @@ namespace PlayingCards {
 
 	class Deck
 	{
-		std::vector<Card> cards;
+		std::vector<Card> Cards{};
 
 		void build_standard_deck ();
 		void build_sorted_deck ();
@@ -58,28 +58,27 @@ namespace PlayingCards {
 		
 
 	public:
-		Deck (DeckOrder order = DeckOrder::STANDARD, bool IncludeJokers = false);
-		~Deck ();
+		explicit Deck (DeckOrder Order = DeckOrder::STANDARD, bool IncludeJokers = false);
 
 		void deal (unsigned int NumCards, std::vector<Player>& Players); 
 		void deal_n_to_each (unsigned int NumCards, std::vector<Player>& Players);
 
 		Card pick_up_from_deck ();
 
-		void place_card_into_deck (Card card);
+		void place_card_into_deck (Card ToPlace);
 
 		void shuffle_deck ();
-		void shuffle_into_this_deck (Deck const& other_deck);
-		void insert_deck_into_bottom_of_this_deck (Deck const& other_deck);
+		void shuffle_into_this_deck (Deck const& OtherDeck);
+		void insert_deck_into_bottom_of_this_deck (Deck const& OtherDeck);
 		
 		std::optional<Card> peek_top_card ();
 	};
 
 
-	std::string to_string (Card const& card);
-	std::string to_string (Rank const & rank);
-	std::string to_string (Suit const & suit);
-	std::string suit_full_name (Suit const& suit);
+	std::string to_string (Card const& CardUse);
+	std::string to_string (Rank const & RankUse);
+	std::string to_string (Suit const & SuitUse);
+	std::string suit_full_name (Suit const& SuitUse);
 	Suit string_to_suit (std::string const& SuitStr);
 
 };

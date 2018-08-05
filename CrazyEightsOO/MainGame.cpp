@@ -10,7 +10,7 @@ std::vector<Player> MainGame::get_n_player_names (int N)
 
 	std::cin.ignore (std::numeric_limits<std::streamsize>::max (), '\n');
 
-	auto Gen = []() {
+	const auto Gen = []() {
 		std::cout << "Name:\t";
 		std::string PlayerName;
 		std::getline (std::cin, PlayerName);
@@ -24,11 +24,11 @@ std::vector<Player> MainGame::get_n_player_names (int N)
 }
 
 
-std::vector<Player> MainGame::PromptUserForPlayerList ()
+std::vector<Player> MainGame::prompt_user_for_player_list ()
 {
-	int PlayerCount = get_player_count ();
+	const auto PlayerCount = get_player_count ();
 
-	std::vector<Player> AllPlayers = get_n_player_names (PlayerCount);
+	auto AllPlayers = get_n_player_names (PlayerCount);
 
 	std::cout << "The players in your crazy eights game are:" << std::endl;
 
@@ -39,48 +39,39 @@ std::vector<Player> MainGame::PromptUserForPlayerList ()
 
 std::string MainGame::display_discard_chain ()
 {
-	auto top_card = Discard.peek_top_card ();
+	auto TopCard = Discard.peek_top_card ();
 
-	if (top_card == std::nullopt) return "Empty";
+	if (TopCard == std::nullopt) return "Empty";
 
-	return PlayingCards::to_string (*top_card);
+	return playing_cards::to_string (*TopCard);
 }
 
 MainGame::MainGame () :
-	Players (PromptUserForPlayerList ()),
-	ActivePlayerNum (0),
-	Deck (PlayingCards::DeckOrder::SHUFFLED),
-	Discard (PlayingCards::DeckOrder::EMPTY)
+	Players (prompt_user_for_player_list ()),
+	Deck (playing_cards::DeckOrder::SHUFFLED),
+	Discard (playing_cards::DeckOrder::EMPTY)
 {
 	init ();
 }
 
 MainGame::MainGame (std::vector<std::string> PlayerNames) :
 	Players (PlayerNames.begin (), PlayerNames.end ()),
-	ActivePlayerNum (0),
-	Deck (PlayingCards::DeckOrder::SHUFFLED),
-	Discard (PlayingCards::DeckOrder::EMPTY)
+	Deck (playing_cards::DeckOrder::SHUFFLED),
+	Discard (playing_cards::DeckOrder::EMPTY)
 {
-	std::vector<Player> players (PlayerNames.begin (), PlayerNames.end ());
-
 	init ();
-}
-
-
-MainGame::~MainGame ()
-{
 }
 
 void print_player_list (std::vector<Player> &AllPlayers)
 {
-	auto PrintNameWTab = [](auto const& a) { std::cout << "\t" << a.get_name () << std::endl; };
+	const auto PrintNameWTab = [](auto const& A) { std::cout << "\t" << A.get_name () << std::endl; };
 
 	std::for_each (AllPlayers.begin (), AllPlayers.end (), PrintNameWTab);
 }
 
 int MainGame::get_player_count ()
 {
-	int PlayerCount = 0;
+	auto PlayerCount = 0;
 
 	std::cout << "How many players would like to play crazy eights?" << std::endl;
 
@@ -98,10 +89,10 @@ int MainGame::get_player_count ()
 
 void MainGame::shuffle_players (std::vector<Player> &AllPlayers)
 {
-	std::random_device rd;
-	std::mt19937 g (rd ());
+	std::random_device Rd;
+	std::mt19937 G (Rd ());
 
-	std::shuffle (AllPlayers.begin (), AllPlayers.end (), g);
+	std::shuffle (AllPlayers.begin (), AllPlayers.end (), G);
 
 	std::cout << "The shuffled turn order will be:" << std::endl;
 
@@ -119,24 +110,24 @@ void MainGame::init ()
 void MainGame::run ()
 {	
 	//Game loop
-	using PlayingCards::Suit;
+	using playing_cards::Suit;
 
 	std::cout << static_cast<char>(Suit::HEART) << static_cast<char>(Suit::DIAMOND) 
 		<< static_cast<char>(Suit::SPADE) << static_cast<char>(Suit::CLUB) << std::endl;
 
 
 	Deck.deal_n_to_each (8, Players);
-	
-	auto card = Deck.pick_up_from_deck ();
-	Discard.place_card_into_deck (card);
 
-	CurrentSuit = card.second;
+	const auto InitialCard = Deck.pick_up_from_deck ();
+	Discard.place_card_into_deck (InitialCard);
 
-	if (card.first == PlayingCards::Rank::EIGHT)
+	CurrentSuit = InitialCard.second;
+
+	if (InitialCard.first == playing_cards::Rank::EIGHT)
 	{
 		std::cout << Players[ActivePlayerNum].get_name () << ", the starting card is an eight. Which suit would you like to start the game off with?" << std::endl;
 
-		CurrentSuit = PromptPlayerForSuit (Players[ActivePlayerNum]);
+		CurrentSuit = prompt_player_for_suit (Players[ActivePlayerNum]);
 	}
 
 	while (!GameShouldStopRunning)
@@ -146,13 +137,13 @@ void MainGame::run ()
 		std::cout << "It is " << ActivePlayer.get_name() << "'s turn. Your hand is:\t" << ActivePlayer.display_hand () << std::endl;
 
 		std::cout << "The top chain to play on is:\t" << display_discard_chain () << std::endl;
-		std::cout << "The current suit is:\t" << PlayingCards::suit_full_name (CurrentSuit) << std::endl;
+		std::cout << "The current suit is:\t" << playing_cards::suit_full_name (CurrentSuit) << std::endl;
 		
 
-		auto top_card = Discard.peek_top_card ();
+		auto TopCard = Discard.peek_top_card ();
 
-		if (top_card == std::nullopt) std::runtime_error ("Missing card indicating play");
-		ActivePlayer.prompt_action ((*top_card).first, CurrentSuit);
+		if (TopCard == std::nullopt) std::runtime_error ("Missing card indicating play");
+		ActivePlayer.prompt_action ((*TopCard).first, CurrentSuit);
 
 		++ActivePlayerNum %= Players.size ();
 
@@ -160,28 +151,27 @@ void MainGame::run ()
 	}
 }
 
-PlayingCards::Suit MainGame::PromptPlayerForSuit (Player& player)
+playing_cards::Suit MainGame::prompt_player_for_suit (Player& Player) const
 {
-	std::cout << "Your hand is : \t" << player.display_hand () << std::endl;
+	std::cout << "Your hand is : \t" << Player.display_hand () << std::endl;
 
 	std::cout << "Suit:\t";
 
-	PlayingCards::Suit PlayersChoice;
-	std::string choice;
+	std::string Choice;
 
-	std::getline (std::cin, choice);
+	std::getline (std::cin, Choice);
 
-	PlayersChoice = PlayingCards::string_to_suit (choice);
+	auto PlayersChoice = playing_cards::string_to_suit (Choice);
 
-	while (PlayersChoice == PlayingCards::Suit::NO_SUIT)
+	while (PlayersChoice == playing_cards::Suit::NO_SUIT)
 	{
 		std::cout << "Sorry, that suit is unrecognized. Please try entering a valid suit (spade, heart, club, diamond). Case does not matter." << std::endl;
 
 		std::cout << "Suit:\t";
 
-		std::getline (std::cin, choice);
+		std::getline (std::cin, Choice);
 
-		PlayersChoice = PlayingCards::string_to_suit (choice);
+		PlayersChoice = playing_cards::string_to_suit (Choice);
 	}
 
 	return PlayersChoice;

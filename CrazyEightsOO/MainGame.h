@@ -6,17 +6,17 @@
 class MainGame
 {
 	bool GameShouldStopRunning = false;
-	std::vector<Player> Players;
+	std::vector<Player> Players{};
 	
 	//Game State -- usually a comment like this means we may want a class/struct...
 	int ActivePlayerNum = 0;
-	PlayingCards::Deck Deck;
-	PlayingCards::Deck Discard;
-	PlayingCards::Suit CurrentSuit;
+	playing_cards::Deck Deck;
+	playing_cards::Deck Discard;
+	playing_cards::Suit CurrentSuit = playing_cards::Suit::NO_SUIT;
 
 	static std::vector<Player> get_n_player_names (int N);
 
-	std::vector<Player> PromptUserForPlayerList ();
+	static std::vector<Player> prompt_user_for_player_list ();
 
 	std::string display_discard_chain ();
 
@@ -25,13 +25,11 @@ public:
 
 	MainGame (std::vector<std::string> PlayerNames);
 
-	~MainGame ();
-
 	void init ();
-	int get_player_count ();
-	void shuffle_players (std::vector<Player> &AllPlayers);
+	static int get_player_count ();
+	static void shuffle_players (std::vector<Player> &AllPlayers);
 	void run ();
-	PlayingCards::Suit PromptPlayerForSuit (Player& player);
+	playing_cards::Suit prompt_player_for_suit (Player& PromptedPlayer) const;
 };
 
 void print_player_list (std::vector<Player> &AllPlayers);
